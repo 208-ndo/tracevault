@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TraceVault — AI Skip Trace Aggregator</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#EDECEA;
+  --surface:#FFFFFF;
+  --surface2:#F5F4F2;
+  --border:rgba(0,0,0,0.08);
+  --border-md:rgba(0,0,0,0.14);
+  --border-strong:rgba(0,0,0,0.22);
+  --text:#0C0C0C;
+  --muted:#5C5C5C;
+  --hint:#9A9A9A;
+  --green:#166534;
+  --green-bg:#F0FDF4;
+  --green-border:#86EFAC;
+  --red:#991B1B;
+  --red-bg:#FEF2F2;
+  --amber:#92400E;
+  --amber-bg:#FFFBEB;
+  --amber-border:#FCD34D;
+  --r:8px;
+  --rl:12px;
+  --mono:'DM Mono',monospace;
+  --sans:'DM Sans',sans-serif;
+}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;min-height:100vh}
+
+/* TOPBAR */
+.topbar{background:var(--surface);border-bottom:1px solid var(--border-strong);padding:0 28px;height:54px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200}
+.brand{display:flex;align-items:center;gap:10px}
+.brand-sq{width:28px;height:28px;background:var(--text);border-radius:6px;display:flex;align-items:center;justify-content:center}
+.brand-sq svg{width:16px;height:16px;stroke:#fff;fill:none;stroke-width:1.8}
+.brand-name{font-size:15px;font-weight:600;letter-spacing:-0.4px}
+.brand-tag{font-size:11px;color:var(--hint);letter-spacing:0.2px}
+.topbar-right{display:flex;align-items:center;gap:10px}
+.api-wrap{display:flex;align-items:center;gap:6px}
+.api-label{font-size:11px;color:var(--muted)}
+.api-input{padding:5px 10px;border:1px solid var(--border-strong);border-radius:var(--r);font-size:11px;font-family:var(--mono);color:var(--text);background:var(--bg);outline:none;width:220px}
+.api-input:focus{border-color:var(--text);background:var(--surface)}
+.status-chip{font-size:11px;padding:4px 12px;border-radius:20px;border:1px solid var(--border-strong);color:var(--muted);display:flex;align-items:center;gap:6px;font-family:var(--mono)}
+.sdot{width:6px;height:6px;border-radius:50%;background:#D1D5DB}
+.sdot.run{background:#22C55E;animation:pulse 1s infinite}
+.sdot.done{background:#22C55E}
+.sdot.err{background:#EF4444}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+
+/* LAYOUT */
+.layout{display:grid;grid-template-columns:290px 1fr;min-height:calc(100vh - 54px)}
+.sidebar{background:var(--surface);border-right:1px solid var(--border-strong);padding:20px;display:flex;flex-direction:column;gap:16px;overflow-y:auto}
+.main{padding:20px;display:flex;flex-direction:column;gap:14px;overflow-y:auto}
+
+/* SIDEBAR */
+.slbl{font-size:9.5px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--hint);margin-bottom:8px}
+.field{display:flex;flex-direction:column;gap:4px;margin-bottom:8px}
+.field label{font-size:11px;color:var(--muted);font-weight:500}
+.field input,.field textarea{padding:8px 10px;border:1px solid var(--border-md);border-radius:var(--r);font-size:12.5px;font-family:var(--sans);color:var(--text);background:var(--bg);outline:none;transition:border .12s,background .12s;width:100%}
+.field input:focus,.field textarea:focus{border-color:var(--text);background:var(--surface)}
+.field textarea{resize:vertical;font-family:var(--mono);font-size:11.5px;height:88px;line-height:1.6}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.tabs{display:flex;border:1px solid var(--border-strong);border-radius:var(--r);overflow:hidden;margin-bottom:14px}
+.tbtn{flex:1;padding:7px;font-size:11.5px;font-family:var(--sans);font-weight:500;border:none;background:transparent;cursor:pointer;color:var(--muted);transition:all .12s}
+.tbtn.on{background:var(--text);color:#fff}
+.hint-txt{font-size:10px;color:var(--hint);font-family:var(--mono);margin-top:4px}
+
+/* SOURCES */
+.src{display:flex;align-items:center;justify-content:space-between;padding:9px 11px;border:1px solid var(--border);border-radius:var(--r);margin-bottom:5px;background:var(--surface2);transition:all .12s}
+.src.on{background:var(--surface);border-color:var(--border-strong)}
+.src-name{font-size:12px;font-weight:500}
+.src-sub{font-size:10px;color:var(--hint);margin-top:1px}
+.tog{width:30px;height:17px;border-radius:9px;background:#D1D5DB;position:relative;cursor:pointer;flex-shrink:0;transition:background .15s}
+.tog.on{background:var(--text)}
+.tog::after{content:'';position:absolute;width:11px;height:11px;border-radius:50%;background:#fff;top:3px;left:3px;transition:transform .15s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.tog.on::after{transform:translateX(13px)}
+.notice{padding:9px 11px;background:var(--amber-bg);border:1px solid var(--amber-border);border-radius:var(--r);font-size:10.5px;color:var(--amber);line-height:1.55}
+
+/* BUTTONS */
+.btn-p{width:100%;padding:11px;background:var(--text);color:#fff;border:none;border-radius:var(--r);font-size:13px;font-weight:600;font-family:var(--sans);cursor:pointer;letter-spacing:-0.2px;transition:opacity .12s;margin-bottom:7px}
+.btn-p:hover{opacity:.84}
+.btn-p:disabled{opacity:.32;cursor:not-allowed}
+.btn-s{width:100%;padding:9px;background:transparent;color:var(--text);border:1px solid var(--border-strong);border-radius:var(--r);font-size:12px;font-weight:500;font-family:var(--sans);cursor:pointer;transition:background .12s;margin-bottom:6px}
+.btn-s:hover{background:var(--surface2)}
+.div{height:1px;background:var(--border)}
+
+/* STATS */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);padding:14px 16px}
+.stat-v{font-size:26px;font-weight:600;letter-spacing:-1.5px;line-height:1}
+.stat-l{font-size:10.5px;color:var(--muted);margin-top:5px}
+
+/* RESULTS */
+.rcard{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);overflow:hidden}
+.rhead{padding:13px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.rtitle{font-size:13px;font-weight:600}
+.icon-btn{padding:5px 12px;border:1px solid var(--border-strong);border-radius:var(--r);background:var(--surface2);font-size:11px;font-family:var(--sans);color:var(--text);cursor:pointer;transition:background .1s}
+.icon-btn:hover{background:var(--bg)}
+
+/* PROGRESS */
+.pbox{padding:14px 18px;border-bottom:1px solid var(--border)}
+.prow{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:7px;font-family:var(--mono)}
+.pbar{height:2px;background:var(--bg);border-radius:1px;overflow:hidden}
+.pfill{height:100%;background:var(--text);border-radius:1px;width:0;transition:width .25s ease}
+.logarea{margin-top:9px;display:flex;flex-direction:column;gap:2px;max-height:64px;overflow:hidden}
+.logline{font-size:10.5px;font-family:var(--mono);color:var(--hint)}
+.logline.ok{color:var(--green)}
+.logline.err{color:var(--red)}
+.logline.info{color:var(--muted)}
+
+/* TABLE */
+.thead{display:grid;grid-template-columns:170px 1fr 120px 95px;gap:12px;padding:9px 18px;background:var(--surface2);border-bottom:1px solid var(--border)}
+.th{font-size:9.5px;letter-spacing:.7px;text-transform:uppercase;color:var(--hint);font-weight:600}
+.rrow-wrap{border-bottom:1px solid var(--border)}
+.rrow-wrap:last-child{border-bottom:none}
+.rrow{display:grid;grid-template-columns:170px 1fr 120px 95px;gap:12px;padding:13px 18px;cursor:pointer;transition:background .1s;align-items:start}
+.rrow:hover{background:var(--surface2)}
+.rname{font-size:13px;font-weight:500}
+.raddr{font-size:11px;color:var(--muted);margin-top:2px}
+.ptags{display:flex;flex-wrap:wrap;gap:4px}
+.ptag{font-size:11px;padding:3px 8px;border:1px solid var(--border-strong);border-radius:5px;background:var(--bg);font-family:var(--mono);color:var(--text)}
+.etag{font-size:11px;padding:3px 8px;border:1px solid var(--green-border);border-radius:5px;background:var(--green-bg);font-family:var(--mono);color:var(--green)}
+.noph{font-size:11px;color:var(--hint);font-style:italic}
+.pills{display:flex;flex-wrap:wrap;gap:3px}
+.pill{font-size:9.5px;padding:2px 7px;border-radius:20px;border:1px solid var(--border);color:var(--hint)}
+.pill.hit{border-color:var(--green-border);color:var(--green);background:var(--green-bg)}
+.cnum{font-size:15px;font-weight:600;letter-spacing:-.5px}
+.cbar{height:3px;background:var(--bg);border-radius:2px;margin-top:5px;overflow:hidden}
+.cfill{height:100%;background:var(--text);border-radius:2px}
+.clbl{font-size:9.5px;color:var(--hint);margin-top:3px}
+
+/* DETAIL */
+.detail{display:none;padding:14px 18px;background:var(--surface2);border-top:1px solid var(--border)}
+.dgrid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+.dlbl{font-size:9.5px;text-transform:uppercase;letter-spacing:.7px;color:var(--hint);font-weight:600;margin-bottom:6px}
+.ditem{font-size:11.5px;color:var(--text);font-family:var(--mono);margin-bottom:3px}
+.ditem.m{color:var(--hint);font-style:italic}
+
+/* EMPTY */
+.empty{padding:56px 24px;text-align:center}
+.empty-t{font-size:13px;color:var(--muted);font-weight:500}
+.empty-s{font-size:11px;color:var(--hint);margin-top:5px}
+
+/* API KEY NOTICE */
+.key-banner{background:var(--amber-bg);border-bottom:1px solid var(--amber-border);padding:9px 28px;font-size:11.5px;color:var(--amber);display:flex;align-items:center;gap:8px}
+.key-banner a{color:var(--amber);text-decoration:underline}
+</style>
+</head>
+<body>
+
+<div class="key-banner" id="key-banner">
+  ⚠ Enter your free Anthropic API key in the top bar to enable live AI lookups.
+  Get one free at <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a>
+  &nbsp;·&nbsp; Your key stays in your browser only — never sent anywhere except Anthropic.
+  <span style="margin-left:auto;cursor:pointer;font-weight:600" onclick="document.getElementById('key-banner').style.display='none'">✕</span>
+</div>
+
+<div class="topbar">
+  <div class="brand">
+    <div class="brand-sq">
+      <svg viewBox="0 0 24 24"><path d="M21 10H7"/><path d="M21 6H3"/><path d="M21 14H3"/><path d="M21 18H7"/></svg>
+    </div>
+    <div>
+      <div class="brand-name">TraceVault</div>
+      <div class="brand-tag">AI-powered skip trace aggregator</div>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <div class="api-wrap">
+      <span class="api-label">Anthropic API key</span>
+      <input class="api-input" id="api-key" type="password" placeholder="sk-ant-api03-..." oninput="checkKey()">
+    </div>
+    <div class="status-chip"><div class="sdot" id="sdot"></div><span id="stxt">Idle</span></div>
+  </div>
+</div>
+
+<div class="layout">
+  <div class="sidebar">
+
+    <div>
+      <div class="tabs">
+        <button class="tbtn on" id="tb-single" onclick="switchTab('single')">Single lookup</button>
+        <button class="tbtn" id="tb-bulk" onclick="switchTab('bulk')">Bulk CSV</button>
+      </div>
+
+      <div id="pane-single">
+        <div class="slbl">Name & address</div>
+        <div class="row2">
+          <div class="field"><label>First name</label><input id="fn" placeholder="John"></div>
+          <div class="field"><label>Last name</label><input id="ln" placeholder="Smith"></div>
+        </div>
+        <div class="field"><label>Street address</label><input id="addr" placeholder="123 Main St"></div>
+        <div class="field"><label>City</label><input id="city" placeholder="Akron"></div>
+        <div class="row2">
+          <div class="field"><label>State</label><input id="st" placeholder="OH" maxlength="2" style="text-transform:uppercase"></div>
+          <div class="field"><label>ZIP</label><input id="zip" placeholder="44301" maxlength="5"></div>
+        </div>
+      </div>
+
+      <div id="pane-bulk" style="display:none">
+        <div class="slbl">Bulk CSV</div>
+        <div class="field">
+          <textarea id="bulk-input" placeholder="John,Smith,123 Main St,Akron,OH,44301&#10;Jane,Doe,456 Oak Ave,Cleveland,OH,44115&#10;Mike,Brown,789 Pine Rd,Dayton,OH,45401"></textarea>
+        </div>
+        <div class="hint-txt">Format: First,Last,Address,City,State,ZIP · Max 20 per run</div>
+      </div>
+    </div>
+
+    <div class="div"></div>
+
+    <div>
+      <div class="slbl">Sources to query</div>
+      <div class="src on" data-src="TruePeopleSearch">
+        <div><div class="src-name">TruePeopleSearch</div><div class="src-sub">Phone · Address · Relatives</div></div>
+        <div class="tog on" onclick="togSrc(this,event)"></div>
+      </div>
+      <div class="src on" data-src="FastPeopleSearch">
+        <div><div class="src-name">FastPeopleSearch</div><div class="src-sub">Phone · Age · Associates</div></div>
+        <div class="tog on" onclick="togSrc(this,event)"></div>
+      </div>
+      <div class="src on" data-src="USPhoneBook">
+        <div><div class="src-name">USPhoneBook</div><div class="src-sub">Phone · Address history</div></div>
+        <div class="tog on" onclick="togSrc(this,event)"></div>
+      </div>
+      <div class="src on" data-src="411.com">
+        <div><div class="src-name">411.com</div><div class="src-sub">Landline · Business · Address</div></div>
+        <div class="tog on" onclick="togSrc(this,event)"></div>
+      </div>
+      <div class="src on" data-src="AnyWho">
+        <div><div class="src-name">AnyWho</div><div class="src-sub">Reverse lookup · Address</div></div>
+        <div class="tog on" onclick="togSrc(this,event)"></div>
+      </div>
+      <div class="notice" style="margin-top:8px">AI uses public web data to find contact info. Results vary by how public the person's info is. For guaranteed data use BatchSkipTracing.</div>
+    </div>
+
+    <div class="div"></div>
+
+    <button class="btn-p" id="run-btn" onclick="runTrace()">Run AI trace pipeline</button>
+    <button class="btn-s" onclick="exportCSV()">Export CSV → BatchSkipTracing</button>
+    <button class="btn-s" onclick="clearAll()">Clear all results</button>
+
+  </div>
+
+  <div class="main">
+
+    <div class="stats">
+      <div class="stat"><div class="stat-v" id="s-rec">0</div><div class="stat-l">Records processed</div></div>
+      <div class="stat"><div class="stat-v" id="s-ph">0</div><div class="stat-l">Phone numbers</div></div>
+      <div class="stat"><div class="stat-v" id="s-em">0</div><div class="stat-l">Emails found</div></div>
+      <div class="stat"><div class="stat-v" id="s-conf">—</div><div class="stat-l">Avg confidence</div></div>
+    </div>
+
+    <div class="rcard">
+      <div class="rhead">
+        <div class="rtitle">Results</div>
+        <div style="display:flex;gap:7px">
+          <button class="icon-btn" onclick="exportCSV()">Export CSV</button>
+          <button class="icon-btn" onclick="clearAll()">Clear</button>
+        </div>
+      </div>
+
+      <div class="pbox" id="pbox" style="display:none">
+        <div class="prow"><span id="plbl">Starting pipeline...</span><span id="ppct">0%</span></div>
+        <div class="pbar"><div class="pfill" id="pfill"></div></div>
+        <div class="logarea" id="logarea"></div>
+      </div>
+
+      <div class="thead">
+        <div class="th">Name / Address</div>
+        <div class="th">Contact info</div>
+        <div class="th">Sources checked</div>
+        <div class="th">Confidence</div>
+      </div>
+
+      <div id="rbody">
+        <div class="empty">
+          <div class="empty-t">No results yet</div>
+          <div class="empty-s">Add your API key · enter a name · click Run</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+let allResults = [];
+let activeTab = 'single';
+
+function checkKey() {
+  const k = document.getElementById('api-key').value.trim();
+  if (k.startsWith('sk-ant')) {
+    document.getElementById('key-banner').style.display = 'none';
+  }
+}
+
+function switchTab(tab) {
+  activeTab = tab;
+  document.getElementById('pane-single').style.display = tab === 'single' ? 'block' : 'none';
+  document.getElementById('pane-bulk').style.display = tab === 'bulk' ? 'block' : 'none';
+  document.getElementById('tb-single').classList.toggle('on', tab === 'single');
+  document.getElementById('tb-bulk').classList.toggle('on', tab === 'bulk');
+}
+
+function togSrc(el, e) {
+  e.stopPropagation();
+  el.classList.toggle('on');
+  el.closest('.src').classList.toggle('on', el.classList.contains('on'));
+}
+
+function getSrcs() {
+  return [...document.querySelectorAll('.src.on')].map(e => e.dataset.src);
+}
+
+function setStatus(state, txt) {
+  const d = document.getElementById('sdot');
+  d.className = 'sdot' + (state ? ' ' + state : '');
+  document.getElementById('stxt').textContent = txt;
+}
+
+function addLog(msg, type) {
+  const a = document.getElementById('logarea');
+  const d = document.createElement('div');
+  d.className = 'logline ' + (type || 'info');
+  d.textContent = msg;
+  a.insertBefore(d, a.firstChild);
+}
+
+function setP(pct, lbl) {
+  document.getElementById('pfill').style.width = pct + '%';
+  document.getElementById('ppct').textContent = Math.round(pct) + '%';
+  if (lbl) document.getElementById('plbl').textContent = lbl;
+}
+
+function getBulkRecords() {
+  return document.getElementById('bulk-input').value.trim().split('\n')
+    .filter(l => l.trim())
+    .map(line => {
+      const [first, last, address, city, state, zip] = line.split(',').map(s => s.trim());
+      return { first, last, address, city, state, zip };
+    })
+    .filter(r => r.first && r.last)
+    .slice(0, 20);
+}
+
+async function callClaude(apiKey, prompt) {
+  const resp = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true'
+    },
+    body: JSON.stringify({
+      model: 'claude-opus-4-5',
+      max_tokens: 1024,
+      messages: [{ role: 'user', content: prompt }]
+    })
+  });
+  if (!resp.ok) {
+    const err = await resp.json().catch(() => ({}));
+    throw new Error(err.error?.message || 'API error ' + resp.status);
+  }
+  const data = await resp.json();
+  return data.content[0].text;
+}
+
+function buildPrompt(first, last, address, city, state, zip, sources) {
+  return `You are a skip trace research assistant for a real estate wholesaler.
+
+Search your knowledge for publicly available contact information for this person:
+Name: ${first} ${last}
+Address: ${address || 'unknown'}
+City: ${city || 'unknown'}, ${state || 'unknown'} ${zip || ''}
+
+Check these public directory sources in your knowledge: ${sources.join(', ')}
+
+Return ONLY a JSON object in this exact format, no other text:
+{
+  "phones": ["(330) 555-1234", "(330) 555-5678"],
+  "emails": ["john.smith@email.com"],
+  "addresses": ["123 Main St, Akron OH 44301", "456 Oak Ave, Cleveland OH 44115"],
+  "relatives": ["Jane Smith", "Robert Smith"],
+  "sources_hit": ["TruePeopleSearch", "FastPeopleSearch"],
+  "confidence": 72,
+  "notes": "Found 2 phone numbers via public directory listings. Address confirmed via multiple sources."
+}
+
+Rules:
+- Only include phones/emails you are reasonably confident exist for this person
+- If you have no data, return empty arrays
+- confidence is 0-100 based on how much real data you found
+- sources_hit should only list sources where you found actual data
+- Do NOT fabricate numbers — if you don't know, use empty arrays
+- If you know real public data for this person, include it`;
+}
+
+async function traceOne(apiKey, first, last, address, city, state, zip, sources, idx, total) {
+  const prompt = buildPrompt(first, last, address, city, state, zip, sources);
+  setP((idx / total) * 90, `AI searching for ${first} ${last}...`);
+  addLog(`→ Querying ${sources.length} sources for ${first} ${last}`, 'info');
+
+  const raw = await callClaude(apiKey, prompt);
+
+  let parsed;
+  try {
+    const clean = raw.replace(/```json|```/g, '').trim();
+    parsed = JSON.parse(clean);
+  } catch {
+    parsed = { phones: [], emails: [], addresses: [], relatives: [], sources_hit: [], confidence: 0, notes: 'Parse error' };
+  }
+
+  const hitCount = (parsed.sources_hit || []).length;
+  if (parsed.phones.length || parsed.emails.length) {
+    addLog(`✓ ${first} ${last} — ${parsed.phones.length} phone(s), ${parsed.emails.length} email(s)`, 'ok');
+  } else {
+    addLog(`✗ ${first} ${last} — no contact data found`, 'err');
+  }
+
+  return {
+    name: `${first} ${last}`,
+    input_address: address || '',
+    input_city: city || '',
+    input_state: state || '',
+    input_zip: zip || '',
+    phones: parsed.phones || [],
+    emails: parsed.emails || [],
+    addresses: parsed.addresses || [],
+    relatives: parsed.relatives || [],
+    sources_queried: sources,
+    sources_hit: parsed.sources_hit || [],
+    confidence: parsed.confidence || 0,
+    notes: parsed.notes || ''
+  };
+}
+
+async function runTrace() {
+  const apiKey = document.getElementById('api-key').value.trim();
+  if (!apiKey || !apiKey.startsWith('sk-ant')) {
+    alert('Please enter your Anthropic API key in the top bar.\nGet a free one at console.anthropic.com');
+    return;
+  }
+
+  const sources = getSrcs();
+  if (!sources.length) { alert('Enable at least one source.'); return; }
+
+  let records = [];
+  if (activeTab === 'single') {
+    const fn = document.getElementById('fn').value.trim();
+    const ln = document.getElementById('ln').value.trim();
+    if (!fn || !ln) { alert('Enter first and last name.'); return; }
+    records = [{ first: fn, last: ln, address: document.getElementById('addr').value.trim(), city: document.getElementById('city').value.trim(), state: document.getElementById('st').value.trim(), zip: document.getElementById('zip').value.trim() }];
+  } else {
+    records = getBulkRecords();
+    if (!records.length) { alert('No valid records found.\nFormat: First,Last,Address,City,State,ZIP'); return; }
+  }
+
+  const btn = document.getElementById('run-btn');
+  btn.disabled = true;
+  btn.textContent = 'Running AI pipeline...';
+  setStatus('run', 'Running');
+  document.getElementById('pbox').style.display = 'block';
+  document.getElementById('logarea').innerHTML = '';
+  if (allResults.length === 0) document.getElementById('rbody').innerHTML = '';
+  setP(0, 'Starting AI pipeline...');
+
+  try {
+    for (let i = 0; i < records.length; i++) {
+      const r = records[i];
+      const result = await traceOne(apiKey, r.first, r.last, r.address, r.city, r.state, r.zip, sources, i, records.length);
+      allResults.push(result);
+      renderRow(result, allResults.length - 1);
+      updateStats();
+    }
+    setP(100, `Complete — ${records.length} record(s) processed`);
+    setStatus('done', 'Done');
+    addLog(`✓ Pipeline complete`, 'ok');
+  } catch (err) {
+    setStatus('err', 'Error');
+    addLog('✗ Error: ' + err.message, 'err');
+    alert('API error: ' + err.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Run AI trace pipeline';
+    setTimeout(() => {
+      document.getElementById('pbox').style.display = 'none';
+      setStatus('', 'Idle');
+    }, 4000);
+  }
+}
+
+function renderRow(r, idx) {
+  const body = document.getElementById('rbody');
+  const wrap = document.createElement('div');
+  wrap.className = 'rrow-wrap';
+  wrap.id = 'rw-' + idx;
+
+  const loc = [r.input_address, r.input_city, r.input_state, r.input_zip].filter(Boolean).join(', ');
+
+  const contactHtml = [
+    ...r.phones.map(p => `<span class="ptag">${p}</span>`),
+    ...r.emails.map(e => `<span class="etag">${e}</span>`)
+  ].join('') || '<span class="noph">No contact data found</span>';
+
+  const srcHtml = r.sources_queried.map(s => {
+    const hit = r.sources_hit.includes(s);
+    const short = s.replace('TruePeopleSearch','TPS').replace('FastPeopleSearch','FPS').replace('USPhoneBook','USPh').replace('AnyWho','AWho');
+    return `<span class="pill${hit?' hit':''}">${short}</span>`;
+  }).join('');
+
+  const grade = r.confidence >= 75 ? 'High' : r.confidence >= 45 ? 'Medium' : r.confidence > 0 ? 'Low' : 'No data';
+
+  wrap.innerHTML = `
+    <div class="rrow" onclick="togDetail(${idx})">
+      <div><div class="rname">${r.name}</div><div class="raddr">${loc || '—'}</div></div>
+      <div class="ptags">${contactHtml}</div>
+      <div class="pills">${srcHtml}</div>
+      <div>
+        <div class="cnum">${r.confidence}%</div>
+        <div class="cbar"><div class="cfill" style="width:${r.confidence}%"></div></div>
+        <div class="clbl">${grade} match</div>
+      </div>
+    </div>
+    <div class="detail" id="det-${idx}">
+      <div class="dgrid">
+        <div>
+          <div class="dlbl">Phones &amp; emails</div>
+          ${[...r.phones, ...r.emails].map(c => `<div class="ditem">${c}</div>`).join('') || '<div class="ditem m">None found</div>'}
+        </div>
+        <div>
+          <div class="dlbl">Addresses found</div>
+          ${r.addresses.slice(0,4).map(a => `<div class="ditem">${a}</div>`).join('') || '<div class="ditem m">None found</div>'}
+        </div>
+        <div>
+          <div class="dlbl">Relatives / associates</div>
+          ${r.relatives.slice(0,5).map(rel => `<div class="ditem">${rel}</div>`).join('') || '<div class="ditem m">None found</div>'}
+          ${r.notes ? `<div style="margin-top:8px;font-size:10px;color:var(--hint);font-style:italic">${r.notes}</div>` : ''}
+        </div>
+      </div>
+    </div>`;
+  body.appendChild(wrap);
+}
+
+function togDetail(idx) {
+  const d = document.getElementById('det-' + idx);
+  d.style.display = d.style.display === 'block' ? 'none' : 'block';
+}
+
+function updateStats() {
+  document.getElementById('s-rec').textContent = allResults.length;
+  document.getElementById('s-ph').textContent = allResults.reduce((a, r) => a + r.phones.length, 0);
+  document.getElementById('s-em').textContent = allResults.reduce((a, r) => a + r.emails.length, 0);
+  const avg = allResults.length ? Math.round(allResults.reduce((a, r) => a + r.confidence, 0) / allResults.length) : null;
+  document.getElementById('s-conf').textContent = avg !== null ? avg + '%' : '—';
+}
+
+function exportCSV() {
+  if (!allResults.length) { alert('No results to export yet.'); return; }
+  const rows = [['Name','Address','City','State','ZIP','Phone 1','Phone 2','Phone 3','Email 1','Email 2','Relatives','Addresses Found','Sources Hit','Confidence','Notes']];
+  allResults.forEach(r => {
+    rows.push([
+      r.name, r.input_address, r.input_city, r.input_state, r.input_zip,
+      r.phones[0]||'', r.phones[1]||'', r.phones[2]||'',
+      r.emails[0]||'', r.emails[1]||'',
+      r.relatives.join(' | '),
+      r.addresses.join(' | '),
+      r.sources_hit.join(' | '),
+      r.confidence + '%',
+      r.notes
+    ]);
+  });
+  const csv = rows.map(r => r.map(c => '"' + String(c).replace(/"/g, '""') + '"').join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+  a.download = 'tracevault_' + new Date().toISOString().slice(0, 10) + '.csv';
+  a.click();
+}
+
+function clearAll() {
+  allResults = [];
+  document.getElementById('rbody').innerHTML = '<div class="empty"><div class="empty-t">No results yet</div><div class="empty-s">Add your API key · enter a name · click Run</div></div>';
+  updateStats();
+  setStatus('', 'Idle');
+}
+</script>
+</body>
+</html>
