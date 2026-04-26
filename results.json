@@ -1,0 +1,51 @@
+{
+  "status": "complete",
+  "timestamp": "2026-04-26T16:45:37.331126",
+  "subject": {
+    "first": "Michael",
+    "last": "Bitoni",
+    "address": "3831 W Sugar Tree Ct",
+    "city": "Meridian",
+    "state": "ID",
+    "zip": "83646"
+  },
+  "results": {
+    "phones": [],
+    "emails": [],
+    "addresses": [],
+    "relatives": [],
+    "sources_hit": [],
+    "sources_queried": [
+      "TruePeopleSearch",
+      "FastPeopleSearch",
+      "USPhoneBook"
+    ],
+    "confidence": 0
+  },
+  "source_details": [
+    {
+      "source": "TruePeopleSearch",
+      "status": "no_data",
+      "phones": [],
+      "emails": [],
+      "addresses": [],
+      "relatives": []
+    },
+    {
+      "source": "FastPeopleSearch",
+      "status": "no_data",
+      "phones": [],
+      "emails": [],
+      "addresses": [],
+      "relatives": []
+    },
+    {
+      "source": "USPhoneBook",
+      "status": "no_data",
+      "phones": [],
+      "emails": [],
+      "addresses": [],
+      "relatives": []
+    }
+  ]
+}
