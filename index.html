@@ -3,493 +3,466 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TraceVault — Free Skip Trace Launcher</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<title>TraceVault — Skip Trace Intelligence</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#EDECEA;--surface:#FFFFFF;--surface2:#F5F4F2;
-  --border:rgba(0,0,0,0.08);--border-md:rgba(0,0,0,0.14);--border-strong:rgba(0,0,0,0.22);
-  --text:#0C0C0C;--muted:#5C5C5C;--hint:#9A9A9A;
-  --green:#166534;--green-bg:#F0FDF4;--green-border:#86EFAC;
-  --red:#991B1B;--red-bg:#FEF2F2;
-  --amber:#92400E;--amber-bg:#FFFBEB;--amber-border:#FCD34D;
-  --blue:#1e40af;--blue-bg:#EFF6FF;--blue-border:#93C5FD;
-  --r:8px;--rl:12px;--mono:'DM Mono',monospace;--sans:'DM Sans',sans-serif;
+  --black:#080808;--dark:#111111;--dark2:#1a1a1a;--dark3:#242424;--dark4:#2e2e2e;
+  --mid:#3a3a3a;--border:#333333;--border-light:#484848;
+  --white:#f0f0f0;--white2:#c8c8c8;--muted:#888888;--hint:#555555;
+  --mono:'DM Mono',monospace;--sans:'DM Sans',sans-serif;--display:'Bebas Neue',sans-serif;
 }
-body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;min-height:100vh}
-.topbar{background:var(--surface);border-bottom:1px solid var(--border-strong);padding:0 28px;height:54px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200}
-.brand{display:flex;align-items:center;gap:10px}
-.brand-sq{width:28px;height:28px;background:var(--text);border-radius:6px;display:flex;align-items:center;justify-content:center}
-.brand-sq svg{width:16px;height:16px;stroke:#fff;fill:none;stroke-width:1.8}
-.brand-name{font-size:15px;font-weight:600;letter-spacing:-0.4px}
-.brand-tag{font-size:11px;color:var(--hint)}
-.status-chip{font-size:11px;padding:4px 12px;border-radius:20px;border:1px solid var(--border-strong);color:var(--muted);display:flex;align-items:center;gap:6px;font-family:var(--mono)}
-.sdot{width:6px;height:6px;border-radius:50%;background:#D1D5DB}
-.sdot.go{background:#22C55E}
-.sdot.run{background:#F59E0B;animation:pulse 1s infinite}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
-.banner{background:var(--blue-bg);border-bottom:1px solid var(--blue-border);padding:9px 28px;font-size:11.5px;color:var(--blue);display:flex;align-items:center;gap:8px}
-.layout{display:grid;grid-template-columns:300px 1fr;min-height:calc(100vh - 88px)}
-.sidebar{background:var(--surface);border-right:1px solid var(--border-strong);padding:20px;display:flex;flex-direction:column;gap:16px;overflow-y:auto}
-.main{padding:20px;display:flex;flex-direction:column;gap:14px;overflow-y:auto}
-.slbl{font-size:9.5px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--hint);margin-bottom:8px}
-.field{display:flex;flex-direction:column;gap:4px;margin-bottom:8px}
-.field label{font-size:11px;color:var(--muted);font-weight:500}
-.field input,.field textarea{padding:8px 10px;border:1px solid var(--border-md);border-radius:var(--r);font-size:12.5px;font-family:var(--sans);color:var(--text);background:var(--bg);outline:none;transition:border .12s,background .12s;width:100%}
-.field input:focus,.field textarea:focus{border-color:var(--text);background:var(--surface)}
-.field textarea{resize:vertical;font-family:var(--mono);font-size:11.5px;height:100px;line-height:1.6}
-.row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.tabs{display:flex;border:1px solid var(--border-strong);border-radius:var(--r);overflow:hidden;margin-bottom:14px}
-.tbtn{flex:1;padding:7px;font-size:11.5px;font-family:var(--sans);font-weight:500;border:none;background:transparent;cursor:pointer;color:var(--muted);transition:all .12s}
-.tbtn.on{background:var(--text);color:#fff}
-.hint-txt{font-size:10px;color:var(--hint);font-family:var(--mono);margin-top:4px}
-.src{display:flex;align-items:center;justify-content:space-between;padding:9px 11px;border:1px solid var(--border);border-radius:var(--r);margin-bottom:5px;background:var(--surface2);transition:all .12s}
-.src.on{background:var(--surface);border-color:var(--border-strong)}
-.src-left{display:flex;align-items:center;gap:9px}
-.src-icon{width:26px;height:26px;border-radius:5px;background:var(--bg);border:1px solid var(--border-md);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
-.src-name{font-size:12px;font-weight:500}
-.src-sub{font-size:10px;color:var(--hint);margin-top:1px}
-.tog{width:30px;height:17px;border-radius:9px;background:#D1D5DB;position:relative;cursor:pointer;flex-shrink:0;transition:background .15s}
-.tog.on{background:var(--text)}
-.tog::after{content:'';position:absolute;width:11px;height:11px;border-radius:50%;background:#fff;top:3px;left:3px;transition:transform .15s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
-.tog.on::after{transform:translateX(13px)}
-.notice{padding:9px 11px;background:var(--amber-bg);border:1px solid var(--amber-border);border-radius:var(--r);font-size:10.5px;color:var(--amber);line-height:1.55}
-.btn-p{width:100%;padding:11px;background:var(--text);color:#fff;border:none;border-radius:var(--r);font-size:13px;font-weight:600;font-family:var(--sans);cursor:pointer;letter-spacing:-0.2px;transition:opacity .12s;margin-bottom:7px}
-.btn-p:hover{opacity:.84}
-.btn-s{width:100%;padding:9px;background:transparent;color:var(--text);border:1px solid var(--border-strong);border-radius:var(--r);font-size:12px;font-weight:500;font-family:var(--sans);cursor:pointer;transition:background .12s;margin-bottom:6px}
-.btn-s:hover{background:var(--surface2)}
+body{font-family:var(--sans);background:var(--black);color:var(--white);font-size:13px;line-height:1.5;min-height:100vh}
+.topbar{background:var(--dark);border-bottom:1px solid var(--border);padding:0 32px;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200}
+.brand{display:flex;align-items:center;gap:14px}
+.brand-name{font-family:var(--display);font-size:28px;letter-spacing:2px;color:var(--white);line-height:1}
+.brand-line{width:1px;height:24px;background:var(--border)}
+.brand-tag{font-size:10px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;font-family:var(--mono)}
+.topbar-right{display:flex;align-items:center;gap:10px}
+.engine-badge{font-size:10px;font-family:var(--mono);color:var(--white2);padding:5px 14px;border:1px solid var(--border-light);border-radius:2px;letter-spacing:1.5px;text-transform:uppercase;background:var(--dark3)}
+.status-chip{font-size:10px;font-family:var(--mono);padding:4px 12px;border-radius:2px;border:1px solid var(--border);display:flex;align-items:center;gap:7px;color:var(--muted)}
+.sdot{width:6px;height:6px;border-radius:50%;background:var(--hint)}
+.sdot.run{background:#aaa;animation:pulse 1s infinite}
+.sdot.done{background:var(--white2)}
+.sdot.err{background:#666}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.2}}
+
+.page{display:grid;grid-template-columns:320px 1fr;min-height:calc(100vh - 56px)}
+.left{background:var(--dark);border-right:1px solid var(--border);padding:24px;display:flex;flex-direction:column;gap:20px}
+.right{padding:24px;display:flex;flex-direction:column;gap:16px;overflow-y:auto}
+
+.plbl{font-size:9px;font-family:var(--mono);letter-spacing:2px;text-transform:uppercase;color:var(--hint);margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.plbl::after{content:'';flex:1;height:1px;background:var(--border)}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.full{grid-column:1/-1}
+.field{display:flex;flex-direction:column;gap:4px}
+.field label{font-size:9px;font-family:var(--mono);color:var(--hint);letter-spacing:1.2px;text-transform:uppercase}
+.field input{padding:9px 11px;background:var(--dark2);border:1px solid var(--border);border-radius:2px;font-size:12px;font-family:var(--mono);color:var(--white);outline:none;transition:border .12s;width:100%}
+.field input:focus{border-color:var(--border-light);background:var(--dark3)}
+.field input::placeholder{color:var(--hint)}
+
 .div{height:1px;background:var(--border)}
-.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
-.stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);padding:14px 16px}
-.stat-v{font-size:26px;font-weight:600;letter-spacing:-1.5px;line-height:1}
-.stat-l{font-size:10.5px;color:var(--muted);margin-top:5px}
-.how-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);padding:18px 20px}
-.how-title{font-size:12px;font-weight:600;margin-bottom:12px}
-.steps{display:flex;flex-direction:column;gap:9px}
-.step{display:flex;align-items:flex-start;gap:10px}
-.step-num{width:22px;height:22px;border-radius:50%;background:var(--text);color:#fff;font-size:10px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
-.step-txt{font-size:12px;color:var(--muted);line-height:1.5}
-.step-txt b{color:var(--text);font-weight:600}
-.qcard{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);overflow:hidden}
-.qhead{padding:13px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
-.qtitle{font-size:13px;font-weight:600}
-.icon-btn{padding:5px 12px;border:1px solid var(--border-strong);border-radius:var(--r);background:var(--surface2);font-size:11px;font-family:var(--sans);color:var(--text);cursor:pointer;transition:background .1s}
-.icon-btn:hover{background:var(--bg)}
-.current-box{padding:16px 18px;border-bottom:1px solid var(--border);display:none;background:var(--surface)}
-.cur-label{font-size:9.5px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--hint);margin-bottom:10px}
-.cur-name{font-size:20px;font-weight:600;letter-spacing:-0.5px;margin-bottom:3px}
-.cur-addr{font-size:12px;color:var(--muted);margin-bottom:14px}
-.src-launch-grid{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:12px}
-.src-launch-btn{padding:7px 13px;border:1px solid var(--border-strong);border-radius:var(--r);background:var(--surface2);font-size:11.5px;font-family:var(--sans);color:var(--text);cursor:pointer;display:flex;align-items:center;gap:6px;transition:all .12s;text-decoration:none}
-.src-launch-btn:hover{background:var(--text);color:#fff;border-color:var(--text)}
-.src-launch-btn .dot{width:6px;height:6px;border-radius:50%;background:#22C55E;flex-shrink:0}
-.src-launch-btn:hover .dot{background:#fff}
-.launch-all-btn{padding:10px 20px;background:var(--text);color:#fff;border:none;border-radius:var(--r);font-size:12.5px;font-weight:600;font-family:var(--sans);cursor:pointer;display:inline-flex;align-items:center;gap:8px;transition:opacity .12s;margin-bottom:14px}
-.launch-all-btn:hover{opacity:.83}
-.notes-row{display:flex;gap:8px;align-items:flex-start}
-.notes-input{flex:1;padding:8px 10px;border:1px solid var(--border-md);border-radius:var(--r);font-size:12px;font-family:var(--sans);color:var(--text);background:var(--bg);outline:none;resize:none;line-height:1.5}
-.notes-input:focus{border-color:var(--text);background:var(--surface)}
-.save-btn{padding:9px 16px;background:var(--green);color:#fff;border:none;border-radius:var(--r);font-size:12px;font-weight:600;font-family:var(--sans);cursor:pointer;white-space:nowrap;transition:opacity .12s}
-.save-btn:hover{opacity:.85}
-.skip-btn{padding:9px 14px;background:transparent;color:var(--muted);border:1px solid var(--border-strong);border-radius:var(--r);font-size:12px;font-family:var(--sans);cursor:pointer;white-space:nowrap}
-.skip-btn:hover{background:var(--surface2)}
-.thead{display:grid;grid-template-columns:160px 1fr 160px 110px 80px;gap:10px;padding:9px 18px;background:var(--surface2);border-bottom:1px solid var(--border)}
-.th{font-size:9.5px;letter-spacing:.7px;text-transform:uppercase;color:var(--hint);font-weight:600}
-.rrow{display:grid;grid-template-columns:160px 1fr 160px 110px 80px;gap:10px;padding:12px 18px;border-bottom:1px solid var(--border);align-items:start;transition:background .1s}
-.rrow:last-child{border-bottom:none}
-.rrow:hover{background:var(--surface2)}
-.rname{font-size:12.5px;font-weight:500}
-.raddr{font-size:10.5px;color:var(--muted);margin-top:2px}
-.rnotes{font-size:11px;color:var(--muted);word-break:break-word}
-.pills{display:flex;flex-wrap:wrap;gap:3px}
-.pill{font-size:9.5px;padding:2px 6px;border-radius:20px;border:1px solid var(--border);color:var(--hint)}
-.pill.hit{border-color:var(--green-border);color:var(--green);background:var(--green-bg)}
-.badge{font-size:10px;padding:3px 9px;border-radius:20px;font-weight:500;display:inline-block}
-.badge.pending{background:var(--amber-bg);color:var(--amber);border:1px solid var(--amber-border)}
-.badge.done{background:var(--green-bg);color:var(--green);border:1px solid var(--green-border)}
-.badge.skipped{background:var(--surface2);color:var(--hint);border:1px solid var(--border)}
-.empty{padding:56px 24px;text-align:center}
-.empty-t{font-size:13px;color:var(--muted);font-weight:500}
-.empty-s{font-size:11px;color:var(--hint);margin-top:5px}
+
+.launch-btn{width:100%;padding:13px;background:var(--white);color:var(--black);border:none;border-radius:2px;font-family:var(--display);font-size:18px;letter-spacing:3px;cursor:pointer;transition:all .15s}
+.launch-btn:hover{background:var(--white2)}
+.launch-btn:disabled{background:var(--dark4);color:var(--hint);cursor:not-allowed}
+.clear-btn{width:100%;padding:8px;background:transparent;color:var(--muted);border:1px solid var(--border);border-radius:2px;font-size:10px;font-family:var(--mono);letter-spacing:1px;cursor:pointer;transition:all .12s;text-transform:uppercase;margin-top:6px}
+.clear-btn:hover{border-color:var(--border-light);color:var(--white2)}
+
+.how-box{background:var(--dark2);border:1px solid var(--border);border-radius:2px;padding:14px}
+.how-title{font-size:9px;font-family:var(--mono);letter-spacing:1.5px;text-transform:uppercase;color:var(--hint);margin-bottom:10px}
+.how-step{display:flex;gap:10px;margin-bottom:8px;align-items:flex-start}
+.how-num{width:18px;height:18px;border-radius:1px;background:var(--dark4);border:1px solid var(--border);font-size:9px;font-family:var(--mono);color:var(--muted);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.how-txt{font-size:11px;color:var(--muted);line-height:1.5}
+.how-txt b{color:var(--white2);font-weight:500}
+
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.stat{background:var(--dark);border:1px solid var(--border);border-radius:2px;padding:14px}
+.stat-v{font-family:var(--display);font-size:34px;letter-spacing:1px;color:var(--white);line-height:1}
+.stat-l{font-size:9px;font-family:var(--mono);color:var(--muted);letter-spacing:1.2px;text-transform:uppercase;margin-top:5px}
+
+.prog-box{background:var(--dark);border:1px solid var(--border);border-radius:2px;padding:16px}
+.prog-head{display:flex;justify-content:space-between;font-size:10px;font-family:var(--mono);color:var(--muted);margin-bottom:8px;letter-spacing:.5px}
+.prog-track{height:2px;background:var(--dark4);border-radius:1px;overflow:hidden}
+.prog-fill{height:100%;background:var(--white2);border-radius:1px;width:0;transition:width .4s ease}
+.log-wrap{margin-top:10px;display:flex;flex-direction:column;gap:3px;max-height:60px;overflow:hidden}
+.log{font-size:10px;font-family:var(--mono);color:var(--hint)}
+.log.ok{color:#aaa}
+.log.err{color:#666}
+
+.consolidated{background:var(--dark);border:1px solid var(--border-light);border-radius:2px;padding:20px}
+.cons-head{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px}
+.cons-title{font-family:var(--display);font-size:22px;letter-spacing:2px;color:var(--white)}
+.cons-sub{font-size:10px;font-family:var(--mono);color:var(--muted);margin-top:3px;letter-spacing:.5px}
+.cons-actions{display:flex;gap:7px}
+.act-btn{padding:7px 14px;background:var(--dark3);color:var(--white2);border:1px solid var(--border-light);border-radius:2px;font-size:9.5px;font-family:var(--mono);letter-spacing:1px;cursor:pointer;transition:all .12s;text-transform:uppercase}
+.act-btn:hover{background:var(--dark4);color:var(--white)}
+.contact-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.contact-item{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--dark2);border:1px solid var(--border);border-radius:2px;transition:border-color .12s}
+.contact-item:hover{border-color:var(--border-light)}
+.c-icon{font-size:13px;flex-shrink:0}
+.c-val{font-size:12px;font-family:var(--mono);color:var(--white)}
+.c-type{font-size:9px;font-family:var(--mono);color:var(--hint);letter-spacing:1px;text-transform:uppercase;margin-top:1px}
+.c-copy{margin-left:auto;padding:3px 8px;background:transparent;border:1px solid var(--border);border-radius:1px;font-size:9px;font-family:var(--mono);color:var(--hint);cursor:pointer;transition:all .1s;flex-shrink:0}
+.c-copy:hover{border-color:var(--border-light);color:var(--white2)}
+.no-data-msg{grid-column:1/-1;text-align:center;padding:24px;font-family:var(--mono);font-size:11px;color:var(--hint)}
+
+.cards-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.src-card{background:var(--dark);border:1px solid var(--border);border-radius:2px;overflow:hidden}
+.src-card.found{border-color:var(--border-light)}
+.card-head{padding:10px 13px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.card-name{font-size:11px;font-family:var(--mono);color:var(--muted)}
+.src-card.found .card-name{color:var(--white2)}
+.badge{font-size:8px;padding:3px 7px;border-radius:1px;font-family:var(--mono);letter-spacing:1.5px;text-transform:uppercase;border:1px solid var(--border)}
+.badge.found{color:var(--white2);border-color:var(--border-light);background:var(--dark3)}
+.badge.scanning{color:var(--muted);animation:fadepulse 1s infinite}
+.badge.queued{color:var(--hint)}
+.badge.no_data,.badge.error{color:var(--hint)}
+@keyframes fadepulse{0%,100%{opacity:1}50%{opacity:.3}}
+.card-body{padding:12px 13px;min-height:72px;display:flex;flex-direction:column;gap:7px}
+.card-flbl{font-size:8.5px;font-family:var(--mono);color:var(--hint);letter-spacing:1.2px;text-transform:uppercase;margin-bottom:2px}
+.card-fval{font-size:11px;font-family:var(--mono);color:var(--white2);line-height:1.6}
+.card-wait{font-size:11px;font-family:var(--mono);color:var(--hint);font-style:italic;padding-top:4px}
+
+.empty{padding:64px 32px;text-align:center}
+.empty-t{font-family:var(--display);font-size:24px;letter-spacing:2px;color:var(--dark4);margin-bottom:8px}
+.empty-s{font-size:11px;font-family:var(--mono);color:var(--hint)}
+
+.pending-box{background:var(--dark);border:1px solid var(--border);border-radius:2px;padding:20px;text-align:center}
+.pending-title{font-family:var(--display);font-size:20px;letter-spacing:2px;color:var(--white2);margin-bottom:8px}
+.pending-sub{font-size:11px;font-family:var(--mono);color:var(--muted);margin-bottom:16px;line-height:1.6}
+.gh-link{display:inline-flex;align-items:center;gap:8px;padding:10px 20px;background:var(--dark3);border:1px solid var(--border-light);border-radius:2px;font-size:11px;font-family:var(--mono);color:var(--white2);text-decoration:none;cursor:pointer;transition:all .12s;letter-spacing:.5px}
+.gh-link:hover{background:var(--dark4);color:var(--white)}
+.poll-note{font-size:10px;font-family:var(--mono);color:var(--hint);margin-top:12px}
+
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:var(--dark)}
+::-webkit-scrollbar-thumb{background:var(--border-light);border-radius:2px}
 </style>
 </head>
 <body>
 
-<div class="banner">
-  <strong>100% Free — no API key, no account, no cost.</strong>&nbsp; TraceVault opens every skip trace site pre-searched for your lead. You copy what you find back in and export to CSV.
-</div>
-
 <div class="topbar">
   <div class="brand">
-    <div class="brand-sq">
-      <svg viewBox="0 0 24 24"><path d="M21 10H7"/><path d="M21 6H3"/><path d="M21 14H3"/><path d="M21 18H7"/></svg>
-    </div>
-    <div>
-      <div class="brand-name">TraceVault</div>
-      <div class="brand-tag">Free skip trace launcher · Ohio</div>
-    </div>
+    <div class="brand-name">TraceVault</div>
+    <div class="brand-line"></div>
+    <div class="brand-tag">Skip Trace Intelligence</div>
   </div>
-  <div class="status-chip"><div class="sdot" id="sdot"></div><span id="stxt">Ready</span></div>
+  <div class="topbar-right">
+    <div class="status-chip"><div class="sdot" id="sdot"></div><span id="stxt">Ready</span></div>
+    <div class="engine-badge">Multi-Source Engine</div>
+  </div>
 </div>
 
-<div class="layout">
-  <div class="sidebar">
+<div class="page">
+  <div class="left">
 
     <div>
-      <div class="tabs">
-        <button class="tbtn on" id="tb-single" onclick="switchTab('single')">Single</button>
-        <button class="tbtn" id="tb-bulk" onclick="switchTab('bulk')">Bulk CSV</button>
-      </div>
-
-      <div id="pane-single">
-        <div class="slbl">Lead info</div>
-        <div class="row2">
-          <div class="field"><label>First name</label><input id="fn" placeholder="John"></div>
-          <div class="field"><label>Last name</label><input id="ln" placeholder="Smith"></div>
-        </div>
-        <div class="field"><label>Street address</label><input id="addr" placeholder="123 Main St"></div>
-        <div class="field"><label>City</label><input id="city" placeholder="Akron"></div>
-        <div class="row2">
-          <div class="field"><label>State</label><input id="st" placeholder="OH" maxlength="2"></div>
-          <div class="field"><label>ZIP</label><input id="zip" placeholder="44301" maxlength="5"></div>
-        </div>
-      </div>
-
-      <div id="pane-bulk" style="display:none">
-        <div class="slbl">Bulk CSV</div>
-        <div class="field">
-          <textarea id="bulk-input" placeholder="John,Smith,123 Main St,Akron,OH,44301&#10;Jane,Doe,456 Oak Ave,Cleveland,OH,44115&#10;Mike,Brown,789 Pine Rd,Dayton,OH,45401"></textarea>
-        </div>
-        <div class="hint-txt">Format: First,Last,Address,City,State,ZIP</div>
+      <div class="plbl">Subject Information</div>
+      <div class="fgrid">
+        <div class="field"><label>First Name</label><input id="fn" placeholder="e.g. John"></div>
+        <div class="field"><label>Last Name</label><input id="ln" placeholder="e.g. Smith"></div>
+        <div class="field full"><label>Street Address</label><input id="addr" placeholder="e.g. 123 Main St"></div>
+        <div class="field"><label>City</label><input id="city" placeholder="e.g. Akron"></div>
+        <div class="field"><label>State</label><input id="st" placeholder="OH" maxlength="2"></div>
+        <div class="field"><label>ZIP</label><input id="zip" placeholder="44301" maxlength="5"></div>
       </div>
     </div>
 
     <div class="div"></div>
 
     <div>
-      <div class="slbl">Sites to launch</div>
-
-      <div class="src on" data-src="TruePeopleSearch">
-        <div class="src-left"><div class="src-icon">🔍</div>
-          <div><div class="src-name">TruePeopleSearch</div><div class="src-sub">Phone · Address · Relatives</div></div>
-        </div>
-        <div class="tog on" onclick="togSrc(this,event)"></div>
-      </div>
-      <div class="src on" data-src="FastPeopleSearch">
-        <div class="src-left"><div class="src-icon">⚡</div>
-          <div><div class="src-name">FastPeopleSearch</div><div class="src-sub">Phone · Age · Associates</div></div>
-        </div>
-        <div class="tog on" onclick="togSrc(this,event)"></div>
-      </div>
-      <div class="src on" data-src="USPhoneBook">
-        <div class="src-left"><div class="src-icon">📖</div>
-          <div><div class="src-name">USPhoneBook</div><div class="src-sub">Phone · Address history</div></div>
-        </div>
-        <div class="tog on" onclick="togSrc(this,event)"></div>
-      </div>
-      <div class="src on" data-src="411.com">
-        <div class="src-left"><div class="src-icon">📞</div>
-          <div><div class="src-name">411.com</div><div class="src-sub">Landline · Business</div></div>
-        </div>
-        <div class="tog on" onclick="togSrc(this,event)"></div>
-      </div>
-      <div class="src on" data-src="Spokeo">
-        <div class="src-left"><div class="src-icon">👤</div>
-          <div><div class="src-name">Spokeo</div><div class="src-sub">Preview · Identity confirm</div></div>
-        </div>
-        <div class="tog on" onclick="togSrc(this,event)"></div>
-      </div>
-      <div class="src on" data-src="BeenVerified">
-        <div class="src-left"><div class="src-icon">✅</div>
-          <div><div class="src-name">BeenVerified</div><div class="src-sub">Preview · Background</div></div>
-        </div>
-        <div class="tog on" onclick="togSrc(this,event)"></div>
-      </div>
-
-      <div class="notice" style="margin-top:8px">Sites open pre-searched in new tabs. Copy what you find into the notes field per record. Export when done.</div>
+      <button class="launch-btn" id="launch-btn" onclick="startTrace()">Initiate Trace</button>
+      <button class="clear-btn" onclick="clearAll()">Clear Results</button>
     </div>
 
     <div class="div"></div>
 
-    <button class="btn-p" onclick="startQueue()">Add to queue &amp; launch →</button>
-    <button class="btn-s" onclick="exportCSV()">Export results CSV</button>
-    <button class="btn-s" onclick="clearDone()">Clear completed</button>
+    <div class="how-box">
+      <div class="how-title">How It Works</div>
+      <div class="how-step"><div class="how-num">1</div><div class="how-txt">Enter name + address and click <b>Initiate Trace</b></div></div>
+      <div class="how-step"><div class="how-num">2</div><div class="how-txt">GitHub runs the scraper in the background — takes <b>60-90 seconds</b></div></div>
+      <div class="how-step"><div class="how-num">3</div><div class="how-txt">Real phones and emails <b>auto-populate</b> in the results panel</div></div>
+      <div class="how-step"><div class="how-num">4</div><div class="how-txt"><b>Export CSV</b> or copy contacts directly to your CRM</div></div>
+    </div>
 
   </div>
 
-  <div class="main">
+  <div class="right" id="right">
 
-    <div class="stats">
-      <div class="stat"><div class="stat-v" id="s-total">0</div><div class="stat-l">In queue</div></div>
-      <div class="stat"><div class="stat-v" id="s-done">0</div><div class="stat-l">Completed</div></div>
-      <div class="stat"><div class="stat-v" id="s-phones">0</div><div class="stat-l">Phones logged</div></div>
-      <div class="stat"><div class="stat-v" id="s-tabs">0</div><div class="stat-l">Tabs opened</div></div>
-    </div>
-
-    <div class="how-card" id="how-card">
-      <div class="how-title">How it works</div>
-      <div class="steps">
-        <div class="step"><div class="step-num">1</div><div class="step-txt"><b>Enter a name</b> (or paste a full CSV list) and click "Add to queue &amp; launch"</div></div>
-        <div class="step"><div class="step-num">2</div><div class="step-txt"><b>All 6 sites open automatically</b> in new tabs, pre-searched for that person — no typing</div></div>
-        <div class="step"><div class="step-num">3</div><div class="step-txt"><b>Copy phones/emails</b> you find into the notes box below each record</div></div>
-        <div class="step"><div class="step-num">4</div><div class="step-txt"><b>Save &amp; next</b> moves to the next record. Bulk runs work the exact same way.</div></div>
-        <div class="step"><div class="step-num">5</div><div class="step-txt"><b>Export CSV</b> — formatted for BatchSkipTracing or GoHighLevel import</div></div>
-      </div>
-    </div>
-
-    <div class="qcard">
-      <div class="qhead">
-        <div class="qtitle">Queue</div>
-        <div style="display:flex;align-items:center;gap:8px">
-          <span id="q-counter" style="font-size:11px;color:var(--hint);font-family:var(--mono)"></span>
-          <button class="icon-btn" onclick="exportCSV()">Export CSV</button>
-        </div>
-      </div>
-
-      <div class="current-box" id="current-box">
-        <div class="cur-label">Current lookup</div>
-        <div class="cur-name" id="cur-name"></div>
-        <div class="cur-addr" id="cur-addr"></div>
-        <div class="src-launch-grid" id="src-btns"></div>
-        <button class="launch-all-btn" onclick="launchAll()">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-          Open all sites now
-        </button>
-        <div class="notes-row">
-          <textarea class="notes-input" id="notes-input" placeholder="Paste phones &amp; emails you found here… e.g. (330) 442-8821, jsmith@gmail.com" rows="2" style="height:58px"></textarea>
-          <button class="save-btn" onclick="saveAndNext()">Save &amp; next ›</button>
-          <button class="skip-btn" onclick="skipRecord()">Skip</button>
-        </div>
-      </div>
-
-      <div class="thead">
-        <div class="th">Name</div>
-        <div class="th">Address</div>
-        <div class="th">Contact info found</div>
-        <div class="th">Sources</div>
-        <div class="th">Status</div>
-      </div>
-      <div id="rbody">
-        <div class="empty">
-          <div class="empty-t">Queue is empty</div>
-          <div class="empty-s">Enter a name or paste CSV and click "Add to queue &amp; launch"</div>
-        </div>
-      </div>
+    <div class="empty" id="empty-state">
+      <div class="empty-t">Enter subject info and initiate trace</div>
+      <div class="empty-s">Results populate automatically across all active sources</div>
     </div>
 
   </div>
 </div>
 
 <script>
-let queue = [];
-let currentIdx = -1;
-let totalTabs = 0;
-let activeTab = 'single';
+const REPO = '208-ndo/tracevault';
+const GH_TOKEN_KEY = 'tv_gh_token';
+let pollInterval = null;
+let traceStartTime = null;
 
-const SRCS = {
-  'TruePeopleSearch': (f,l,c,s) => `https://www.truepeoplesearch.com/results?name=${e(f)}+${e(l)}&citystatezip=${e(c)}+${s}`,
-  'FastPeopleSearch': (f,l,c,s) => `https://www.fastpeoplesearch.com/name/${e(f)}-${e(l)}_${e(c)}%2C+${s}`,
-  'USPhoneBook':      (f,l,c,s) => `https://www.usphonebook.com/${e(f)}-${e(l)}/${(s||'').toLowerCase()}`,
-  '411.com':          (f,l,c,s) => `https://www.411.com/name/${e(f)}-${e(l)}/${(s||'').toLowerCase()}`,
-  'Spokeo':           (f,l,c,s) => `https://www.spokeo.com/${e(f)}-${e(l)}`,
-  'BeenVerified':     (f,l,c,s) => `https://www.beenverified.com/people-search/results?firstName=${e(f)}&lastName=${e(l)}&state=${s}&city=${e(c)}`
-};
-const SRC_ICONS = {'TruePeopleSearch':'🔍','FastPeopleSearch':'⚡','USPhoneBook':'📖','411.com':'📞','Spokeo':'👤','BeenVerified':'✅'};
-
-function e(s){ return encodeURIComponent((s||'').trim()); }
-function getOnSrcs(){ return [...document.querySelectorAll('.src.on')].map(el=>el.dataset.src); }
-
-function switchTab(t){
-  activeTab=t;
-  document.getElementById('pane-single').style.display=t==='single'?'block':'none';
-  document.getElementById('pane-bulk').style.display=t==='bulk'?'block':'none';
-  document.getElementById('tb-single').classList.toggle('on',t==='single');
-  document.getElementById('tb-bulk').classList.toggle('on',t==='bulk');
-}
-
-function togSrc(el,ev){
-  ev.stopPropagation();
-  el.classList.toggle('on');
-  el.closest('.src').classList.toggle('on',el.classList.contains('on'));
-}
-
-function setStatus(cls,txt){
-  document.getElementById('sdot').className='sdot'+(cls?' '+cls:'');
-  document.getElementById('stxt').textContent=txt;
-}
-
-function getInputRecords(){
-  if(activeTab==='single'){
-    const fn=document.getElementById('fn').value.trim();
-    const ln=document.getElementById('ln').value.trim();
-    if(!fn||!ln) return null;
-    return [{first:fn,last:ln,
-      address:document.getElementById('addr').value.trim(),
-      city:document.getElementById('city').value.trim(),
-      state:document.getElementById('st').value.trim().toUpperCase(),
-      zip:document.getElementById('zip').value.trim()}];
+function getToken(){
+  let t = localStorage.getItem(GH_TOKEN_KEY);
+  if(!t){
+    t = prompt('Enter your GitHub Personal Access Token (needed to trigger the scraper).\n\nGet one at: github.com/settings/tokens\nScopes needed: repo, workflow\n\nThis is saved in your browser only.');
+    if(t) localStorage.setItem(GH_TOKEN_KEY, t);
   }
-  const raw=document.getElementById('bulk-input').value.trim();
-  if(!raw) return null;
-  return raw.split('\n').filter(l=>l.trim()).map(line=>{
-    const[first,last,address,city,state,zip]=line.split(',').map(s=>s.trim());
-    return{first,last,address,city,state:(state||'').toUpperCase(),zip};
-  }).filter(r=>r.first&&r.last);
+  return t;
 }
 
-function startQueue(){
-  const recs=getInputRecords();
-  if(!recs||!recs.length){alert('Enter at least a first and last name.');return;}
-  recs.forEach(r=>queue.push({...r,status:'pending',contact:'',launched:[]}));
-  document.getElementById('how-card').style.display='none';
-  rebuildTable();
-  updateStats();
-  const first=queue.findIndex(r=>r.status==='pending');
-  if(first>=0) activate(first);
-  if(activeTab==='single'){['fn','ln','addr','city','st','zip'].forEach(id=>document.getElementById(id).value='');}
-  else document.getElementById('bulk-input').value='';
+function setStatus(cls, txt){
+  const d = document.getElementById('sdot');
+  d.className = 'sdot' + (cls ? ' '+cls : '');
+  document.getElementById('stxt').textContent = txt;
 }
 
-function activate(idx){
-  currentIdx=idx;
-  const r=queue[idx];
-  const loc=[r.address,r.city,r.state,r.zip].filter(Boolean).join(', ');
-  document.getElementById('cur-name').textContent=r.first+' '+r.last;
-  document.getElementById('cur-addr').textContent=loc||'No address provided';
-  document.getElementById('notes-input').value=r.contact||'';
-  document.getElementById('current-box').style.display='block';
-  document.getElementById('q-counter').textContent=(idx+1)+' of '+queue.length;
-  // build per-source buttons
-  const grid=document.getElementById('src-btns');
-  grid.innerHTML='';
-  getOnSrcs().forEach(sid=>{
-    const a=document.createElement('a');
-    a.href=SRCS[sid](r.first,r.last,r.city,r.state);
-    a.target='_blank';
-    a.className='src-launch-btn';
-    a.innerHTML=`<span class="dot"></span>${SRC_ICONS[sid]||''} ${sid}`;
-    a.addEventListener('click',()=>markLaunched(idx,sid));
-    grid.appendChild(a);
+function showRight(html){ document.getElementById('right').innerHTML = html; }
+
+async function startTrace(){
+  const fn   = document.getElementById('fn').value.trim();
+  const ln   = document.getElementById('ln').value.trim();
+  const addr = document.getElementById('addr').value.trim();
+  const city = document.getElementById('city').value.trim();
+  const st   = document.getElementById('st').value.trim().toUpperCase();
+  const zip  = document.getElementById('zip').value.trim();
+
+  if(!fn || !ln){ alert('Enter first and last name.'); return; }
+
+  const token = getToken();
+  if(!token){ alert('GitHub token required to trigger the scraper.'); return; }
+
+  const btn = document.getElementById('launch-btn');
+  btn.disabled = true;
+  btn.textContent = 'LAUNCHING...';
+  setStatus('run', 'Triggering scraper...');
+
+  // trigger GitHub Actions workflow
+  try {
+    const resp = await fetch(`https://api.github.com/repos/${REPO}/actions/workflows/trace.yml/dispatches`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `token ${token}`,
+        'Accept': 'application/vnd.github.v3+json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        ref: 'main',
+        inputs: { first: fn, last: ln, address: addr, city, state: st, zip }
+      })
+    });
+
+    if(resp.status === 204){
+      // success - start polling
+      traceStartTime = Date.now();
+      showPendingUI(fn, ln);
+      setStatus('run', 'Scraper running...');
+      startPolling(token);
+      btn.textContent = 'TRACING...';
+    } else {
+      const err = await resp.json().catch(()=>({}));
+      throw new Error(err.message || `HTTP ${resp.status}`);
+    }
+  } catch(e){
+    alert('Error triggering scraper: ' + e.message + '\n\nCheck your GitHub token has "repo" and "workflow" scopes.');
+    btn.disabled = false;
+    btn.textContent = 'INITIATE TRACE';
+    setStatus('err', 'Error');
+  }
+}
+
+function showPendingUI(fn, ln){
+  document.getElementById('right').innerHTML = `
+    <div class="pending-box">
+      <div class="pending-title">Tracing ${fn} ${ln}</div>
+      <div class="pending-sub">
+        GitHub is running the scraper now.<br>
+        Querying TruePeopleSearch · FastPeopleSearch · USPhoneBook<br><br>
+        <strong style="color:var(--white2)">Results appear automatically in 60–90 seconds.</strong>
+      </div>
+      <a class="gh-link" href="https://github.com/${REPO}/actions" target="_blank">
+        ⚡ Watch it run live on GitHub →
+      </a>
+      <div class="poll-note">This page is checking for results every 10 seconds...</div>
+    </div>
+    <div class="stats-row" id="stats-row" style="display:none">
+      <div class="stat"><div class="stat-v" id="s-queried">0</div><div class="stat-l">Sources Queried</div></div>
+      <div class="stat"><div class="stat-v" id="s-found">0</div><div class="stat-l">Sources With Data</div></div>
+      <div class="stat"><div class="stat-v" id="s-phones">0</div><div class="stat-l">Unique Phones</div></div>
+      <div class="stat"><div class="stat-v" id="s-emails">0</div><div class="stat-l">Unique Emails</div></div>
+    </div>`;
+}
+
+function startPolling(token){
+  let attempts = 0;
+  pollInterval = setInterval(async () => {
+    attempts++;
+    const elapsed = Math.round((Date.now() - traceStartTime) / 1000);
+    setStatus('run', `Scraping... ${elapsed}s`);
+
+    try {
+      // fetch results.json directly from GitHub raw
+      const r = await fetch(`https://raw.githubusercontent.com/${REPO}/main/results.json?t=${Date.now()}`);
+      if(!r.ok) return;
+      const data = await r.json();
+
+      // check if this is a fresh result (within last 3 minutes)
+      if(data.status === 'complete' && data.timestamp){
+        const resultAge = (Date.now() - new Date(data.timestamp).getTime()) / 1000;
+        if(resultAge < 180){
+          // fresh result!
+          clearInterval(pollInterval);
+          showResults(data);
+          const btn = document.getElementById('launch-btn');
+          if(btn){ btn.disabled = false; btn.textContent = 'INITIATE TRACE'; }
+          setStatus('done', 'Complete');
+          return;
+        }
+      }
+
+      // timeout after 3 minutes
+      if(attempts > 18){
+        clearInterval(pollInterval);
+        setStatus('err', 'Timeout');
+        const btn = document.getElementById('launch-btn');
+        if(btn){ btn.disabled = false; btn.textContent = 'INITIATE TRACE'; }
+        alert('Scraper took too long. Check GitHub Actions tab for errors.');
+      }
+    } catch(e){
+      console.log('Poll attempt failed:', e.message);
+    }
+  }, 10000);
+}
+
+function showResults(data){
+  const r = data.results || {};
+  const s = data.subject || {};
+  const phones = r.phones || [];
+  const emails = r.emails || [];
+  const srcsHit = r.sources_hit || [];
+  const srcsQueried = r.sources_queried || [];
+  const details = data.source_details || [];
+
+  const right = document.getElementById('right');
+  right.innerHTML = '';
+
+  // stats
+  const statsDiv = document.createElement('div');
+  statsDiv.className = 'stats-row';
+  statsDiv.innerHTML = `
+    <div class="stat"><div class="stat-v">${srcsQueried.length}</div><div class="stat-l">Sources Queried</div></div>
+    <div class="stat"><div class="stat-v">${srcsHit.length}</div><div class="stat-l">Sources With Data</div></div>
+    <div class="stat"><div class="stat-v">${phones.length}</div><div class="stat-l">Unique Phones</div></div>
+    <div class="stat"><div class="stat-v">${emails.length}</div><div class="stat-l">Unique Emails</div></div>`;
+  right.appendChild(statsDiv);
+
+  // consolidated
+  const cons = document.createElement('div');
+  cons.className = 'consolidated';
+  const loc = [s.city, s.state, s.zip].filter(Boolean).join(', ');
+  let contactHtml = '';
+  phones.forEach(p => {
+    contactHtml += `<div class="contact-item">
+      <div class="c-icon">📞</div>
+      <div><div class="c-val">${p}</div><div class="c-type">Phone Number</div></div>
+      <button class="c-copy" onclick="copyTxt('${p}',this)">COPY</button>
+    </div>`;
   });
-  setStatus('run','Tracing '+r.first+' '+r.last);
-  updateStats();
+  emails.forEach(e => {
+    contactHtml += `<div class="contact-item">
+      <div class="c-icon">✉</div>
+      <div><div class="c-val">${e}</div><div class="c-type">Email Address</div></div>
+      <button class="c-copy" onclick="copyTxt('${e}',this)">COPY</button>
+    </div>`;
+  });
+  if(!phones.length && !emails.length){
+    contactHtml = '<div class="no-data-msg">No contact data found across active sources.<br>Try a different name spelling or add more address detail.</div>';
+  }
+  cons.innerHTML = `
+    <div class="cons-head">
+      <div>
+        <div class="cons-title">Consolidated Results</div>
+        <div class="cons-sub">${s.first} ${s.last} · ${loc} · ${phones.length} phones · ${emails.length} emails · deduped</div>
+      </div>
+      <div class="cons-actions">
+        <button class="act-btn" onclick="exportCSV()">Export CSV</button>
+        <button class="act-btn" onclick="copyAll()">Copy All</button>
+      </div>
+    </div>
+    <div class="contact-grid">${contactHtml}</div>`;
+  right.appendChild(cons);
+
+  // source cards
+  if(details.length){
+    const cardsDiv = document.createElement('div');
+    cardsDiv.className = 'cards-grid';
+    details.forEach(src => {
+      const card = document.createElement('div');
+      card.className = 'src-card' + (src.status === 'found' ? ' found' : '');
+      const badge = src.status === 'found' ? 'found' : src.status === 'error' ? 'error' : 'no_data';
+      const badgeLabel = src.status === 'found' ? 'FOUND' : src.status === 'error' ? 'ERROR' : 'NO DATA';
+      let bodyHtml = '';
+      if(src.phones && src.phones.length){
+        bodyHtml += `<div><div class="card-flbl">Phone Numbers</div><div class="card-fval">${src.phones.join('<br>')}</div></div>`;
+      }
+      if(src.emails && src.emails.length){
+        bodyHtml += `<div><div class="card-flbl">Email</div><div class="card-fval">${src.emails.join('<br>')}</div></div>`;
+      }
+      if(src.addresses && src.addresses.length){
+        bodyHtml += `<div><div class="card-flbl">Address</div><div class="card-fval">${src.addresses[0]}</div></div>`;
+      }
+      if(src.relatives && src.relatives.length){
+        bodyHtml += `<div><div class="card-flbl">Associates</div><div class="card-fval">${src.relatives.slice(0,3).join('<br>')}</div></div>`;
+      }
+      if(!bodyHtml) bodyHtml = `<div class="card-wait">${src.error || 'No data returned'}</div>`;
+      card.innerHTML = `
+        <div class="card-head">
+          <div class="card-name">${src.source}</div>
+          <div class="badge ${badge}">${badgeLabel}</div>
+        </div>
+        <div class="card-body">${bodyHtml}</div>`;
+      cardsDiv.appendChild(card);
+    });
+    right.appendChild(cardsDiv);
+  }
+
+  // store for export
+  window._traceData = data;
 }
 
-function launchAll(){
-  if(currentIdx<0) return;
-  const r=queue[currentIdx];
-  getOnSrcs().forEach(sid=>{
-    window.open(SRCS[sid](r.first,r.last,r.city,r.state),'_blank');
-    markLaunched(currentIdx,sid);
+function copyTxt(txt, btn){
+  navigator.clipboard.writeText(txt).then(()=>{
+    const orig = btn.textContent;
+    btn.textContent = 'COPIED';
+    setTimeout(()=>btn.textContent=orig, 1500);
   });
 }
 
-function markLaunched(idx,sid){
-  if(!queue[idx].launched.includes(sid)){
-    queue[idx].launched.push(sid);
-    totalTabs++;
-    updateStats();
-    rebuildRow(idx);
-  }
-}
-
-function saveAndNext(){
-  if(currentIdx<0) return;
-  queue[currentIdx].contact=document.getElementById('notes-input').value.trim();
-  queue[currentIdx].status='done';
-  rebuildRow(currentIdx);
-  updateStats();
-  goNext();
-}
-
-function skipRecord(){
-  if(currentIdx<0) return;
-  queue[currentIdx].status='skipped';
-  rebuildRow(currentIdx);
-  updateStats();
-  goNext();
-}
-
-function goNext(){
-  let next=queue.findIndex((r,i)=>i>currentIdx&&r.status==='pending');
-  if(next<0) next=queue.findIndex(r=>r.status==='pending');
-  if(next>=0){activate(next);}
-  else{
-    document.getElementById('current-box').style.display='none';
-    document.getElementById('q-counter').textContent='All done!';
-    setStatus('go','All done');
-  }
-}
-
-function buildRowEl(idx){
-  const r=queue[idx];
-  const loc=[r.address,r.city,r.state,r.zip].filter(Boolean).join(', ');
-  const onSrcs=getOnSrcs();
-  const srcHtml=onSrcs.map(s=>{
-    const short=s.replace('TruePeopleSearch','TPS').replace('FastPeopleSearch','FPS').replace('USPhoneBook','USPh').replace('BeenVerified','BV');
-    return`<span class="pill${r.launched.includes(s)?' hit':''}">${short}</span>`;
-  }).join('');
-  const badge=r.status==='done'?'<span class="badge done">Done</span>':
-               r.status==='skipped'?'<span class="badge skipped">Skipped</span>':
-               '<span class="badge pending">Pending</span>';
-  const div=document.createElement('div');
-  div.id='row-'+idx;
-  div.className='rrow';
-  div.innerHTML=`
-    <div><div class="rname">${r.first} ${r.last}</div></div>
-    <div class="raddr">${loc||'—'}</div>
-    <div class="rnotes">${r.contact||'—'}</div>
-    <div class="pills">${srcHtml}</div>
-    <div>${badge}</div>`;
-  return div;
-}
-
-function rebuildTable(){
-  const body=document.getElementById('rbody');
-  body.innerHTML='';
-  if(!queue.length){
-    body.innerHTML='<div class="empty"><div class="empty-t">Queue is empty</div><div class="empty-s">Enter a name or paste CSV and click "Add to queue &amp; launch"</div></div>';
-    return;
-  }
-  queue.forEach((_,i)=>body.appendChild(buildRowEl(i)));
-}
-
-function rebuildRow(idx){
-  const old=document.getElementById('row-'+idx);
-  if(old) old.replaceWith(buildRowEl(idx));
-}
-
-function updateStats(){
-  document.getElementById('s-total').textContent=queue.length;
-  document.getElementById('s-done').textContent=queue.filter(r=>r.status==='done').length;
-  const phones=queue.reduce((a,r)=>{
-    const m=(r.contact||'').match(/\(?\d{3}\)?[\s.\-]\d{3}[\s.\-]\d{4}/g);
-    return a+(m?m.length:0);
-  },0);
-  document.getElementById('s-phones').textContent=phones;
-  document.getElementById('s-tabs').textContent=totalTabs;
-}
-
-function clearDone(){
-  queue=queue.filter(r=>r.status==='pending');
-  currentIdx=-1;
-  rebuildTable();
-  updateStats();
-  const next=queue.findIndex(r=>r.status==='pending');
-  if(next>=0) activate(next);
-  else{document.getElementById('current-box').style.display='none';setStatus('','Ready');}
+function copyAll(){
+  if(!window._traceData) return;
+  const r = window._traceData.results || {};
+  const all = [...(r.phones||[]), ...(r.emails||[])].join('\n');
+  navigator.clipboard.writeText(all).then(()=>alert('Copied ' + (r.phones||[]).length + ' phones and ' + (r.emails||[]).length + ' emails'));
 }
 
 function exportCSV(){
-  if(!queue.length){alert('Nothing to export yet.');return;}
-  const rows=[['First','Last','Address','City','State','ZIP','Contact Info Found','Sources Launched','Status']];
-  queue.forEach(r=>rows.push([r.first,r.last,r.address||'',r.city||'',r.state||'',r.zip||'',r.contact||'',r.launched.join('|'),r.status]));
-  const csv=rows.map(r=>r.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(',')).join('\n');
-  const a=document.createElement('a');
-  a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
-  a.download='tracevault_'+new Date().toISOString().slice(0,10)+'.csv';
+  if(!window._traceData) return;
+  const r = window._traceData.results || {};
+  const s = window._traceData.subject || {};
+  const ph = r.phones || [];
+  const em = r.emails || [];
+  const rows = [['First','Last','Address','City','State','ZIP','Phone1','Phone2','Phone3','Phone4','Email1','Email2','Sources Hit','Confidence']];
+  rows.push([s.first,s.last,s.address,s.city,s.state,s.zip,
+    ph[0]||'',ph[1]||'',ph[2]||'',ph[3]||'',
+    em[0]||'',em[1]||'',
+    (r.sources_hit||[]).join('|'),
+    (r.confidence||0)+'%']);
+  const csv = rows.map(row=>row.map(c=>'"'+String(c||'').replace(/"/g,'""')+'"').join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+  a.download = 'tracevault_'+s.first+'_'+s.last+'_'+new Date().toISOString().slice(0,10)+'.csv';
   a.click();
+}
+
+function clearAll(){
+  if(pollInterval) clearInterval(pollInterval);
+  window._traceData = null;
+  ['fn','ln','addr','city','st','zip'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.value='';
+  });
+  document.getElementById('right').innerHTML = `
+    <div class="empty">
+      <div class="empty-t">Enter subject info and initiate trace</div>
+      <div class="empty-s">Results populate automatically across all active sources</div>
+    </div>`;
+  const btn = document.getElementById('launch-btn');
+  btn.disabled = false;
+  btn.textContent = 'INITIATE TRACE';
+  setStatus('','Ready');
 }
 </script>
 </body>
